@@ -2,6 +2,12 @@
 
 Game 3D cổ tích góc nhìn thứ ba: điều khiển **Mây** (người giữ đèn đội nón lá) vượt qua **3 Đêm** — **Đảo Bến**, **Đảo Cau** và **Đảo Chuông** — giữ đủ ánh sáng trên các Đèn Lồng Lớn tới bình minh trước sự săn đuổi của Bóng Mực và Gió Lạc.
 
+## Ảnh chụp màn hình (1280×720)
+
+| Menu chính | Gameplay Đêm 1 & HUD | Cài đặt & Trợ năng |
+|---|---|---|
+| ![Menu chính](docs/screenshots/menu.png) | ![Gameplay Đêm 1](docs/screenshots/gameplay.png) | ![Cài đặt & Trợ năng](docs/screenshots/settings.png) |
+
 ---
 
 ## Yêu cầu hệ thống

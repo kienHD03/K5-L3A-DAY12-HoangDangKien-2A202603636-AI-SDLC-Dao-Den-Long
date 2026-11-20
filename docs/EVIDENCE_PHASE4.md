@@ -43,3 +43,9 @@
   "duration_s": 0.28
 }
 ```
+
+## 4. Ảnh chụp màn hình thực tế (1280×720)
+
+- **Menu chính & chọn 3 Đêm / Bảng xếp hạng:** `docs/screenshots/menu.png`
+- **Gameplay 3D Đêm 1 & HUD (`>= 18px`):** `docs/screenshots/gameplay.png`
+- **Cài đặt, Trợ năng (Mù màu, Giảm chuyển động, Chữ lớn ×1.25, Đổi 9 phím):** `docs/screenshots/settings.png`
