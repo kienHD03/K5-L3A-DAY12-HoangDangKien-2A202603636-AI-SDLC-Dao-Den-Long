@@ -21,6 +21,9 @@ export const SIM_CONSTANTS = {
   SHADE_HIT_Y_TOLERANCE: 1.5,
   SHADE_DETECT_RADIUS: 12.0,
   SHADE_LOSE_RADIUS: 18.0,
+  SHADE_DRAIN_RADIUS: 2.0,
+  SHADE_DRAIN_AGGRO_RADIUS: 6.0,
+  SHADE_DRAIN_EVENT_INTERVAL_TICKS: 60,
   SHADE_WANDER_SPEED: 1.5,
   SHADE_RECOIL_DIST: 2.0,
   SHADE_RECOIL_TICKS: 60,
@@ -47,6 +50,13 @@ export const SIM_CONSTANTS = {
   WIND_TELEGRAPH_TICKS: 120, // 2s
   WIND_DURATION_TICKS: 300, // 5s
   WIND_PUSH_SPEED: 2.0,
+  // Phase 3 integer fuel units (1 fuel = 60 fuelTicks)
+  FUEL_UNITS_PER_SECOND: 60,
+  FUEL_MAX_TICKS: TUNING.fuel_max * 60, // 6000
+  FUEL_LOW_TICKS: TUNING.low_fuel_threshold * 60, // 1800
+  FUEL_PER_MOTE_TICKS: TUNING.fuel_per_mote * 60, // 600
+  FUEL_DECAY_TICKS_PER_TICK: Math.round(TUNING.fuel_decay_per_s), // 1
+  FUEL_DRAIN_TICKS_PER_TICK: Math.round(TUNING.drain_per_s), // 5
 };
 
 export const PALETTE = {
@@ -63,14 +73,21 @@ export const PALETTE = {
   MOTE_GLOW: 0xffe58a,
   SHADE_BODY: 0x120a1a,
   SHADE_RIM: 0x7a3cff,
+  SHADE_RIM_CB: 0x00b3ff,
   SHADE_STUNNED: 0x3a3450,
   MAY_CLOAK: 0xe8e2d0,
   MAY_SCARF_CHARM: 0xc8102e,
   GOLD_ACCENT: 0xf2c14e,
   DRIFTER: 0x8fa3b8,
   UI_DANGER: '#FF5A5F',
+  UI_DANGER_CB: '#FFFFFF',
   UI_TEXT: '#F5F1E6',
 };
+
+export function round1(v) {
+  const r = Math.round(v * 10) / 10;
+  return Object.is(r, -0) ? 0 : r;
+}
 
 export function round3(v) {
   const r = Math.round(v * 1000) / 1000;

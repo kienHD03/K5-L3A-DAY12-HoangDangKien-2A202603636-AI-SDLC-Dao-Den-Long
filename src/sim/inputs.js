@@ -1,5 +1,5 @@
 /**
- * Validation and frame-by-frame reader for Test Contract v1.1 inputs & scenarios.
+ * Validation and frame-by-frame reader for Test Contract v1.2 inputs & scenarios.
  */
 
 export class ContractFormatError extends Error {
@@ -17,7 +17,7 @@ export function isVec3(val) {
   );
 }
 
-const VALID_SHADE_STATES = new Set(['spawning', 'wander', 'chase', 'recoil', 'stunned']);
+const VALID_SHADE_STATES = new Set(['spawning', 'wander', 'chase', 'recoil', 'stunned', 'drain']);
 
 export function validateInputs(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
@@ -85,6 +85,7 @@ export function validateScenario(raw) {
       'dash_cd_ticks',
       'pulse_cd_ticks',
       'charm_ticks',
+      'successful_lights',
     ]) {
       if (
         raw.player[intKey] !== undefined &&
@@ -145,6 +146,11 @@ export function validateScenario(raw) {
           `Scenario shades[${i}].state_ticks_left must be a non-negative integer.`
         );
       }
+      if (s.target_lantern_id !== undefined && typeof s.target_lantern_id !== 'string') {
+        throw new ContractFormatError(
+          `Scenario shades[${i}].target_lantern_id must be a string.`
+        );
+      }
     }
   }
   if (raw.drifters !== undefined) {
@@ -192,6 +198,12 @@ export function validateScenario(raw) {
       }
       if (l.lit !== undefined && typeof l.lit !== 'boolean') {
         throw new ContractFormatError(`Scenario lanterns[${i}].lit must be a boolean.`);
+      }
+      if (l.fuel !== undefined && (typeof l.fuel !== 'number' || !Number.isFinite(l.fuel) || l.fuel < 0)) {
+        throw new ContractFormatError(`Scenario lanterns[${i}].fuel must be a non-negative number.`);
+      }
+      if (l.ever_lit !== undefined && typeof l.ever_lit !== 'boolean') {
+        throw new ContractFormatError(`Scenario lanterns[${i}].ever_lit must be a boolean.`);
       }
     }
   }

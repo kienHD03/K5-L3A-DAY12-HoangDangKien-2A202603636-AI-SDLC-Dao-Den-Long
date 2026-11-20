@@ -104,6 +104,30 @@ body,
   animation: blink 0.8s infinite;
 }
 
+body.colorblind .timer-pill.danger {
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.mote-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cap-pill {
+  font-size: 13px;
+  padding: 6px 12px;
+  color: #ffe58a;
+}
+
+.checkbox-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
 @keyframes blink {
   0%,
   100% {

@@ -35,3 +35,17 @@
 ### 3. Tiết kiệm token
 - Xây dựng và chạy `npm run verify` cho toàn bộ lõi `src/sim/` trước khi viết `src/render/`, phát hiện và sửa bug Dash chỉ trong 1 lượt mà không phải đụng lại tầng 3D.
 - Gom các file độc lập theo từng batch (Batch 1: contract + maps + docs; Batch 2: inputs + engine + headless; Batch 3: tests + verify; Batch 4: 3D UI + audio).
+
+
+---
+
+## Phase 3 — TICKET-03 ("Đèn cạn dầu" · Contract v1.2)
+
+### 1. Xử lý Change Request phá vỡ luật cũ
+- Viết [`docs/ADR_PHASE3_FUEL_AND_WIN.md`](ADR_PHASE3_FUEL_AND_WIN.md) ghi nhận quyết định dùng số nguyên `fuelTicks` (`1/60` fuel, `0..6000`) để tránh sai số dấu phẩy động, tách `everLit`/`relitCount`, bổ sung trạng thái `drain` và chuyển luật thắng sang `dawn_survived`.
+- Viết [`docs/CHANGELOG.md`](CHANGELOG.md) liệt kê đầy đủ các breaking changes so với Phase 2.
+- Cập nhật `tests/unit.test.js` và tạo `scripts/verify-phase3.js` thay thế các assertion cũ (`all_lit`, `+10`/đom đóm nạp, thưởng thời gian) kèm lý do rõ ràng, không skip âm thầm.
+
+### 2. Kiểm chứng & Tiết kiệm token
+- Chạy `npm run verify` ngay sau khi hoàn tất lõi `src/sim/` → **8/8 PASS (13/13 unit tests)** ngay lần chạy đầu, rồi mới cập nhật 3D/HUD/chế độ mù màu trong `src/render/`.
+- Toàn bộ Phase 3 hoàn thành gọn trong 3 lượt gom batch, tốn rất ít token và không đụng vào `README.md` gốc.

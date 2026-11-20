@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "headless": "node src/headless.js",
     "test": "node --test tests/unit.test.js",
-    "verify": "node scripts/verify-phase2.js"
+    "verify": "node scripts/verify-phase3.js"
   },
   "dependencies": {
     "three": "^0.170.0"

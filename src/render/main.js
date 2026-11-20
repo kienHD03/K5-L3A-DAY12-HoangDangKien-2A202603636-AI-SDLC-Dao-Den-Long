@@ -13,9 +13,10 @@ function loadSettings() {
     return {
       volume: typeof parsed.volume === 'number' ? parsed.volume : 70,
       sensitivity: typeof parsed.sensitivity === 'number' ? parsed.sensitivity : 0.3,
+      colorblind: Boolean(parsed.colorblind),
     };
   } catch {
-    return { volume: 70, sensitivity: 0.3 };
+    return { volume: 70, sensitivity: 0.3, colorblind: false };
   }
 }
 function saveSettings() {
@@ -40,6 +41,7 @@ const hudLanterns = document.getElementById('hud-lanterns');
 const hudScore = document.getElementById('hud-score');
 const hudInteract = document.getElementById('hud-interact');
 const hudMoteBar = document.getElementById('hud-mote-bar');
+const hudCapacity = document.getElementById('hud-capacity');
 const hudDash = document.getElementById('hud-dash');
 const hudPulse = document.getElementById('hud-pulse');
 const lanternArrow = document.getElementById('lantern-arrow');
@@ -64,15 +66,18 @@ const optVolume = document.getElementById('opt-volume');
 const optVolumeVal = document.getElementById('opt-volume-val');
 const optSens = document.getElementById('opt-sens');
 const optSensVal = document.getElementById('opt-sens-val');
+const optColorblind = document.getElementById('opt-colorblind');
 
 optVolume.value = String(settings.volume);
 optVolumeVal.textContent = `${settings.volume}%`;
 optSens.value = String(Math.round(settings.sensitivity * 100));
 optSensVal.textContent = settings.sensitivity.toFixed(2);
+optColorblind.checked = settings.colorblind;
+document.body.classList.toggle('colorblind', settings.colorblind);
 
-// Build 10-slot mote bar
+// Build dynamic mote bar (up to capacity_max = 20)
 const moteSlots = [];
-for (let i = 0; i < TUNING.carry_capacity; i++) {
+for (let i = 0; i < TUNING.capacity_max; i++) {
   const slot = document.createElement('div');
   slot.className = 'mote-slot';
   hudMoteBar.appendChild(slot);
@@ -326,6 +331,32 @@ function createLanternMesh(l) {
   bulb.position.y = 3.35;
   group.add(bulb);
 
+  // Tear marks visible when lantern is unlit (non-color distinction for colorblind mode)
+  const tearGroup = new THREE.Group();
+  const tearMat = new THREE.MeshBasicMaterial({ color: 0x1a1c26 });
+  for (let i = 0; i < 3; i++) {
+    const tear = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.45, 0.08), tearMat);
+    const a = (i * 2 * Math.PI) / 3;
+    tear.position.set(Math.cos(a) * 0.56, 3.35, Math.sin(a) * 0.56);
+    tear.rotation.z = 0.25;
+    tearGroup.add(tear);
+  }
+  group.add(tearGroup);
+
+  // 3D Fuel bar above lit lantern
+  const fuelBarGroup = new THREE.Group();
+  fuelBarGroup.position.y = 4.45;
+  const fuelBg = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.6, 0.2),
+    new THREE.MeshBasicMaterial({ color: 0x0e1430, side: THREE.DoubleSide })
+  );
+  const fuelFillMat = new THREE.MeshBasicMaterial({ color: PALETTE.LANTERN_LIT, side: THREE.DoubleSide });
+  const fuelFill = new THREE.Mesh(new THREE.PlaneGeometry(1.52, 0.13), fuelFillMat);
+  fuelFill.position.z = 0.01;
+  fuelBarGroup.add(fuelBg, fuelFill);
+  fuelBarGroup.visible = false;
+  group.add(fuelBarGroup);
+
   const light = new THREE.PointLight(PALETTE.LANTERN_LIT, 0, 24, 1.4);
   light.position.y = 3.4;
   group.add(light);
@@ -339,7 +370,7 @@ function createLanternMesh(l) {
   group.add(safeRing);
 
   scene.add(group);
-  return { group, bulbMat, light, safeRing };
+  return { group, bulb, bulbMat, tearGroup, fuelBarGroup, fuelFill, fuelFillMat, light, safeRing };
 }
 
 function createMoteMesh() {
@@ -359,12 +390,21 @@ function createShadeMesh() {
   const group = new THREE.Group();
   const bodyMat = new THREE.MeshStandardMaterial({
     color: PALETTE.SHADE_BODY,
-    emissive: PALETTE.SHADE_RIM,
+    emissive: settings.colorblind ? PALETTE.SHADE_RIM_CB : PALETTE.SHADE_RIM,
     emissiveIntensity: 0.6,
   });
   const body = new THREE.Mesh(new THREE.ConeGeometry(0.65, 1.8, 12), bodyMat);
   body.position.y = 0.95;
   group.add(body);
+
+  const eyeMat = new THREE.MeshBasicMaterial({
+    color: settings.colorblind ? PALETTE.SHADE_RIM_CB : PALETTE.SHADE_RIM,
+  });
+  const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), eyeMat);
+  leftEye.position.set(-0.18, 1.25, 0.36);
+  const rightEye = leftEye.clone();
+  rightEye.position.x = 0.18;
+  group.add(leftEye, rightEye);
 
   const halo = new THREE.Mesh(
     new THREE.TorusGeometry(0.55, 0.06, 8, 20),
@@ -375,7 +415,7 @@ function createShadeMesh() {
   group.add(halo);
 
   scene.add(group);
-  return { group, bodyMat, halo };
+  return { group, bodyMat, eyeMat, halo };
 }
 
 function createDrifterMesh() {
@@ -567,6 +607,11 @@ optSens.addEventListener('input', () => {
   settings.sensitivity = Number(optSens.value) / 100;
   optSensVal.textContent = settings.sensitivity.toFixed(2);
 });
+optColorblind.addEventListener('change', () => {
+  settings.colorblind = optColorblind.checked;
+  document.body.classList.toggle('colorblind', settings.colorblind);
+  saveSettings();
+});
 
 // Keyboard & Mouse Controls
 window.addEventListener('keydown', (e) => {
@@ -703,15 +748,42 @@ function syncVisuals(nowSec) {
   mayVisual.group.visible =
     sim.player.respawnTicks === 0 && (sim.player.invulnTicks === 0 || Math.floor(nowSec * 16) % 2 === 0);
 
-  // Lanterns
+  // Lanterns (Phase 3: squash 20% + tear marks when unlit; 3D fuel bar + 1 Hz blink when fuel < 30)
+  const blink1Hz = Math.sin(nowSec * Math.PI * 2) >= 0;
   for (const l of sim.lanterns) {
     const v = lanternVisuals.get(l.id);
     if (!v) continue;
-    const ratio = l.deposited / TUNING.lantern_cost;
+    const cost = sim.getLanternCost(l);
+    const depRatio = l.deposited / cost;
+    const fuelPct = l.fuelTicks / SIM_CONSTANTS.FUEL_MAX_TICKS;
+    const isLowFuel = l.lit && l.fuelTicks < SIM_CONSTANTS.FUEL_LOW_TICKS;
+
+    v.bulb.scale.set(1, l.lit ? 1.0 : 0.8, 1);
+    v.tearGroup.visible = !l.lit;
     v.bulbMat.color.setHex(l.lit ? PALETTE.LANTERN_CORE : PALETTE.LANTERN_UNLIT);
-    v.bulbMat.emissiveIntensity = l.lit ? 2.4 : 0.08 + ratio * 1.1;
-    v.light.intensity = l.lit ? 22 : ratio * 5;
-    v.safeRing.material.opacity = l.lit ? 0.25 : 0;
+    v.bulbMat.emissiveIntensity = l.lit
+      ? isLowFuel && !blink1Hz
+        ? 0.55
+        : 2.4
+      : 0.08 + depRatio * 1.1;
+    v.light.intensity = l.lit ? (isLowFuel && !blink1Hz ? 8 : 22) : depRatio * 5;
+    v.safeRing.material.opacity = sim.hasSafeRadius(l) ? 0.25 : 0;
+
+    v.fuelBarGroup.visible = l.lit;
+    if (l.lit) {
+      v.fuelBarGroup.lookAt(camera.position);
+      v.fuelFill.scale.x = Math.max(0.01, fuelPct);
+      v.fuelFill.position.x = -0.76 * (1 - fuelPct);
+      v.fuelFillMat.color.setHex(
+        isLowFuel
+          ? blink1Hz
+            ? settings.colorblind
+              ? 0xffffff
+              : 0xff5a5f
+            : PALETTE.LANTERN_LIT
+          : PALETTE.LANTERN_LIT
+      );
+    }
   }
 
   // Motes
@@ -739,6 +811,7 @@ function syncVisuals(nowSec) {
       shadeVisuals.delete(id);
     }
   }
+  const rimHex = settings.colorblind ? PALETTE.SHADE_RIM_CB : PALETTE.SHADE_RIM;
   for (const s of sim.shades) {
     let v = shadeVisuals.get(s.id);
     if (!v) {
@@ -748,7 +821,9 @@ function syncVisuals(nowSec) {
     v.group.position.set(s.pos[0], s.pos[1] + Math.sin(nowSec * 4 + s.pos[0]) * 0.1, s.pos[2]);
     const stunned = s.state === 'stunned';
     v.bodyMat.color.setHex(stunned ? PALETTE.SHADE_STUNNED : PALETTE.SHADE_BODY);
-    v.bodyMat.emissiveIntensity = stunned ? 0.25 : 0.7;
+    v.bodyMat.emissive.setHex(rimHex);
+    v.eyeMat.color.setHex(rimHex);
+    v.bodyMat.emissiveIntensity = stunned ? 0.25 : s.state === 'drain' ? 1.2 : 0.7;
     v.halo.material.opacity = stunned ? 0.9 : 0;
     v.halo.rotation.z = nowSec * 4;
   }
@@ -826,11 +901,15 @@ function syncVisuals(nowSec) {
   camera.lookAt(sim.player.pos[0], sim.player.pos[1] + 1.2, sim.player.pos[2]);
 
   // HUD
+  const needed = Math.ceil(TUNING.win_ratio * sim.lanterns.length);
+  const cap = sim.getPlayerCapacity();
   hudFlames.textContent = `🔥 ${sim.player.flames} / ${TUNING.flames}`;
-  hudLanterns.textContent = `🏮 ${litCount} / ${sim.lanterns.length}`;
+  hudLanterns.textContent = `🏮 ${litCount} / ${sim.lanterns.length} (cần ${needed})`;
   hudScore.textContent = `⭐ ${sim.score}`;
-  hudTime.textContent = formatTime(sim.timeLeftS);
-  hudTime.classList.toggle('danger', sim.timeLeftS <= 30);
+  const isDangerTime = sim.timeLeftS <= 30;
+  hudTime.textContent =
+    isDangerTime && settings.colorblind ? `⚠ ${formatTime(sim.timeLeftS)}` : formatTime(sim.timeLeftS);
+  hudTime.classList.toggle('danger', isDangerTime);
 
   // Last 10s countdown beep
   const secCeil = Math.ceil(sim.timeLeftS);
@@ -844,16 +923,26 @@ function syncVisuals(nowSec) {
     hudCharm.textContent = `🧧 Bùa Gió: ${(sim.player.charmTicks / 60).toFixed(1)}s`;
   }
 
+  hudCapacity.textContent = `${sim.player.carried} / ${cap}`;
   for (let i = 0; i < moteSlots.length; i++) {
+    moteSlots[i].classList.toggle('hidden', i >= cap);
     moteSlots[i].classList.toggle('filled', i < sim.player.carried);
   }
 
-  // Interact prompt when near an unlit lantern
+  // Interact prompt when near an unlit lantern OR lit lantern with fuel < 100
   const nearLantern = sim.lanterns.find(
-    (l) => !l.lit && distXZ(sim.player.pos, l.pos) <= TUNING.interact_radius
+    (l) =>
+      distXZ(sim.player.pos, l.pos) <= TUNING.interact_radius &&
+      (!l.lit || l.fuelTicks < SIM_CONSTANTS.FUEL_MAX_TICKS)
   );
   if (nearLantern) {
-    hudInteract.textContent = `E — Nạp ánh sáng (${nearLantern.deposited}/${TUNING.lantern_cost})`;
+    if (!nearLantern.lit) {
+      const cost = sim.getLanternCost(nearLantern);
+      hudInteract.textContent = `E — Nạp ánh sáng (${nearLantern.deposited}/${cost})`;
+    } else {
+      const fuelPct = Math.round(nearLantern.fuelTicks / 60);
+      hudInteract.textContent = `E — Châm dầu (${fuelPct}%)`;
+    }
     hudInteract.classList.remove('hidden');
   } else {
     hudInteract.classList.add('hidden');

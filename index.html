@@ -38,7 +38,10 @@
 
         <div class="hud-bottom-center">
           <div class="pill interact-prompt hidden" id="hud-interact">E — Nạp ánh sáng (0/10)</div>
-          <div class="mote-bar" id="hud-mote-bar"></div>
+          <div class="mote-wrap">
+            <div class="mote-bar" id="hud-mote-bar"></div>
+            <div class="pill cap-pill" id="hud-capacity">0 / 10</div>
+          </div>
         </div>
 
         <div class="hud-bottom-right">
@@ -100,6 +103,12 @@
         <div class="setting-row">
           <label for="opt-sens">Độ nhạy chuột: <span id="opt-sens-val">0.30</span></label>
           <input id="opt-sens" type="range" min="10" max="100" value="30" />
+        </div>
+        <div class="setting-row checkbox-row">
+          <label for="opt-colorblind">
+            <input id="opt-colorblind" type="checkbox" />
+            Bảng màu dễ phân biệt (Chế độ mù màu)
+          </label>
         </div>
         <button id="btn-settings-close" class="btn-primary" type="button">Lưu & Quay lại</button>
       </div>
