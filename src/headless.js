@@ -52,7 +52,9 @@ function parseArgs(argv) {
   }
 
   if (!Number.isInteger(args.seed)) throw new Error('Missing or invalid --seed <int>.');
-  if (args.night !== 1) throw new Error('Missing or unsupported --night (expected 1).');
+  if (![1, 2, 3].includes(args.night)) {
+    throw new Error('Missing or unsupported --night (expected 1, 2, or 3).');
+  }
   if (!Number.isInteger(args.ticks) || args.ticks < 0) {
     throw new Error('Missing or invalid --ticks <int>.');
   }
@@ -101,7 +103,7 @@ function main() {
     lines.push(JSON.stringify(sim.getSnapshot()));
 
     for (let k = 0; k < args.ticks; k++) {
-      if (sim.state !== 'playing') break;
+      if (sim.state === 'won' || sim.state === 'lost') break;
       const input = tape.getInputForTick(k);
       const events = sim.step(input);
       for (const ev of events) {

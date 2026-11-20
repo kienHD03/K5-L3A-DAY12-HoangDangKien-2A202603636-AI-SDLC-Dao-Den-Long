@@ -18,3 +18,20 @@
   - Gom các lệnh đọc/viết file độc lập trong cùng lượt gọi công cụ.
   - Chọn JS ESM + `node --test` tích hợp sẵn để không tốn vòng sửa cấu hình TypeScript/Jest.
 - **Lưu ý trước khi gắn tag `phase-1`:** Tự điền trường `"team"` trong `game.contract.json` theo đúng `mssv-ho-ten` và chơi thử nhanh trên trình duyệt bằng `npm run dev`.
+
+
+---
+
+## Phase 2 — TICKET-02 ("Ba hòn đảo" · Contract v1.1)
+
+### 1. Quy trình & cập nhật Harness
+- Đã cập nhật [`AGENTS.md`](../AGENTS.md) bổ sung quy tắc Contract v1.1, thứ tự 12 bước trong 1 tick, 5 trạng thái Bóng Mực chuẩn (`spawning`, `wander`, `chase`, `recoil`, `stunned`) và yêu cầu giải thích rõ lý do khi sửa test phase cũ.
+- Lập [`docs/SPEC_PHASE2.md`](SPEC_PHASE2.md) với Acceptance Criteria cho toàn bộ Phần 3 trước khi code.
+
+### 2. Lỗi AI / Code phát hiện qua kiểm chứng thật
+- **Lỗi 1 (Phase 1 → Phase 2):** AI ban đầu chỉnh sửa trực tiếp `README.md` gốc của đề lab. Người dùng phát hiện → khôi phục `README.md`, tách sang `GAME_README.md` và khóa thành quy tắc cố định trong `AGENTS.md`.
+- **Lỗi 2 (Phase 2 — Dash trên không):** Trong `src/sim/engine.js`, ở tick thứ 12 của Dash, `dashTicks` bị giảm từ `1 → 0` trước khi nhánh vật lý trục Y kiểm tra `dashTicks > 0`, làm nhân vật rơi `0.0055m` ở tick cuối của Dash. **Phát hiện nhờ unit test `Dash moves at 14 m/s for 12 ticks, holds air altitude`** → sửa bằng biến `isDashingThisTick`, toàn bộ 13/13 unit tests chuyển xanh.
+
+### 3. Tiết kiệm token
+- Xây dựng và chạy `npm run verify` cho toàn bộ lõi `src/sim/` trước khi viết `src/render/`, phát hiện và sửa bug Dash chỉ trong 1 lượt mà không phải đụng lại tầng 3D.
+- Gom các file độc lập theo từng batch (Batch 1: contract + maps + docs; Batch 2: inputs + engine + headless; Batch 3: tests + verify; Batch 4: 3D UI + audio).
