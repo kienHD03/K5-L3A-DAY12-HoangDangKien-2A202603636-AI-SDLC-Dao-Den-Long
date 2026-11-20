@@ -430,10 +430,10 @@ function buildMapGeometry(night) {
     for (const deg of [30, 150]) {
       const rad = (deg * Math.PI) / 180;
       const ramp = new THREE.Mesh(new THREE.BoxGeometry(rampLen, 0.3, 3), woodMat);
-      ramp.position.set(Math.cos(rad) * 27, 1.4, Math.sin(rad) * 27);
+      ramp.position.set(Math.cos(rad) * 27, 1.35, Math.sin(rad) * 27);
       ramp.rotation.order = 'YXZ';
       ramp.rotation.y = -rad;
-      ramp.rotation.z = slopeAngle;
+      ramp.rotation.z = -slopeAngle;
       mapGroup.add(ramp);
     }
   }
