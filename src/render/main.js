@@ -222,6 +222,12 @@ async function persistLeaderboardEntry(entry) {
   return updated;
 }
 
+function showOnlyScreen(target) {
+  for (const el of [screenMenu, screenIntro, screenPause, screenSettings, screenLeaderboard, screenResult]) {
+    el.classList.toggle('hidden', el !== target);
+  }
+}
+
 async function openLeaderboard() {
   const entries = await fetchLeaderboard();
   if (entries.length === 0) {
@@ -777,12 +783,6 @@ if (IS_BENCH) {
     drifterVisuals.clear();
     for (const c of charmVisuals.values()) scene.remove(c);
     charmVisuals.clear();
-  }
-
-  function showOnlyScreen(target) {
-    for (const el of [screenMenu, screenIntro, screenPause, screenSettings, screenLeaderboard, screenResult]) {
-      el.classList.toggle('hidden', el !== target);
-    }
   }
 
   function openIntro(night) {
