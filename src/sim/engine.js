@@ -246,6 +246,7 @@ export class GameSim {
           createdSimTick: -1,
         };
       });
+      this.shades.sort(compareId);
     }
 
     if (sc.drifters !== undefined) {
@@ -259,6 +260,7 @@ export class GameSim {
         wanderChangeTicks: 90,
         createdSimTick: -1,
       }));
+      this.drifters.sort(compareId);
     }
 
     if (sc.charms !== undefined) {
@@ -510,8 +512,7 @@ export class GameSim {
     }
 
     // Active shade fuel drain (5/60 fuel per tick per draining shade)
-    const sortedShadesForDrain = [...this.shades].sort(compareId);
-    for (const s of sortedShadesForDrain) {
+    for (const s of this.shades) {
       if (s.state !== 'drain') continue;
       let target = s.targetLanternId
         ? this.lanterns.find((l) => l.id === s.targetLanternId)
@@ -1130,8 +1131,7 @@ export class GameSim {
 
     // STEP 9: Collisions — Drifters steal FIRST, then Shades hit (ascending id order)
     if (this.player.respawnTicks === 0 && this.player.flames > 0) {
-      const sortedDrifters = [...this.drifters].sort(compareId);
-      for (const d of sortedDrifters) {
+      for (const d of this.drifters) {
         if (d.state !== 'chase' || d.createdSimTick >= this.simTick) continue;
         if (distXZ(this.player.pos, d.pos) <= this.C.DRIFTER_STEAL_RADIUS) {
           const amount = Math.min(this.C.DRIFTER_STEAL_MAX, this.player.carried);
@@ -1149,8 +1149,7 @@ export class GameSim {
       }
 
       let hitThisTick = false;
-      const sortedShades = [...this.shades].sort(compareId);
-      for (const s of sortedShades) {
+      for (const s of this.shades) {
         if (hitThisTick) break;
         if (
           s.createdSimTick >= this.simTick ||

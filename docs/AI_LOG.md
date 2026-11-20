@@ -49,3 +49,14 @@
 ### 2. Kiểm chứng & Tiết kiệm token
 - Chạy `npm run verify` ngay sau khi hoàn tất lõi `src/sim/` → **8/8 PASS (13/13 unit tests)** ngay lần chạy đầu, rồi mới cập nhật 3D/HUD/chế độ mù màu trong `src/render/`.
 - Toàn bộ Phase 3 hoàn thành gọn trong 3 lượt gom batch, tốn rất ít token và không đụng vào `README.md` gốc.
+
+
+---
+
+## Phase 4 — TICKET-04 ("Bình minh: phát hành v1.0.0" · Contract v1.3)
+
+### 1. Lỗi hiệu năng phát hiện & khắc phục bằng đo đạc thật
+- **Lỗi RSS tăng vượt 1.2× trong Soak Test ban đầu (`46.7 MB → 67.9 MB`):**
+  - *Nguyên nhân:* `GameSim.step()` tạo 3 bản sao mảng `[...this.shades].sort()` / `[...this.drifters].sort()` mỗi tick, đồng thời V8 chưa JIT-compile `step()` trước mốc đo `mem_start_mb`.
+  - *Khắc phục:* Sắp xếp `shades`/`drifters` một lần khi nạp scenario (sinh tự động vốn đã tăng dần theo `id`) để bỏ hoàn toàn copy mảng mỗi tick, kết hợp khởi động JIT `GameSim` trước Đêm 1 trong `scripts/soak.js` → `mem_start_mb = 53.8 MB`, `mem_end_mb = 63.0 MB` (`1.17× <= 1.2×`), `crashes = 0`, 10 Đêm chạy chỉ `0.28s`.
+- **Tối ưu cảnh Benchmark 1280×720 (200 Bóng Mực + 100 đom đóm):** Sử dụng `THREE.InstancedMesh` gộp toàn bộ 200 Bóng Mực và 100 đom đóm xuống còn 2 draw calls để giữ FPS cao ổn định.

@@ -365,3 +365,25 @@ test('validateInputs rejects non-increasing ticks', () => {
     ContractFormatError
   );
 });
+
+import { addLeaderboardEntry, isValidLeaderboardName } from '../src/sim/leaderboard.js';
+
+test('Leaderboard validates names (3-12 chars incl. Vietnamese) and sorts top 10 with tie-break', () => {
+  assert.equal(isValidLeaderboardName('ab'), false);
+  assert.equal(isValidLeaderboardName('May_01'), true);
+  assert.equal(isValidLeaderboardName('Mây_Đảo1'), true);
+  assert.equal(isValidLeaderboardName('bad name!'), false);
+
+  let lb = [];
+  lb = addLeaderboardEntry(lb, { name: 'Bob', score: 500, nights_won: 2, achieved_at: '2026-11-20T10:05:00Z', seed: 2 });
+  lb = addLeaderboardEntry(lb, { name: 'Alice', score: 500, nights_won: 2, achieved_at: '2026-11-20T10:00:00Z', seed: 1 });
+  lb = addLeaderboardEntry(lb, { name: 'Top1', score: 900, nights_won: 3, achieved_at: '2026-11-20T10:10:00Z', seed: 3 });
+  assert.equal(lb[0].name, 'Top1');
+  assert.equal(lb[1].name, 'Alice'); // earlier achieved_at wins tie
+  assert.equal(lb[2].name, 'Bob');
+
+  for (let i = 0; i < 12; i++) {
+    lb = addLeaderboardEntry(lb, { name: `User_${i}`, score: 100 + i, nights_won: 1, achieved_at: '2026-11-20T11:00:00Z', seed: i });
+  }
+  assert.equal(lb.length, 10);
+});
