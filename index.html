@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đảo Đèn Lồng — Đêm 1: Đảo Bến</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="canvas-root"></div>
+
+    <div id="hud">
+      <div class="hud-top">
+        <div class="pill" id="hud-flames">🔥 3 / 3</div>
+        <div class="pill" id="hud-carried">✨ 0 / 5</div>
+        <div class="pill" id="hud-lanterns">🏮 0 / 5</div>
+        <div class="pill" id="hud-time">⏳ 05:00</div>
+        <div class="pill" id="hud-score">⭐ 0</div>
+      </div>
+
+      <div class="hud-bottom">
+        <div class="pill" id="hud-pulse">Tỏa sáng [F]: Sẵn sàng (tốn 2 ✨)</div>
+        <div class="pill hint" id="hud-hint">
+          WASD: Đi · Space: Nhảy · Kéo chuột / ← →: Xoay góc nhìn · E: Nạp đèn · F / Chuột phải: Tỏa sáng
+        </div>
+      </div>
+    </div>
+
+    <div id="overlay" class="overlay hidden">
+      <div class="card">
+        <h1 id="overlay-title">Đảo Đèn Lồng</h1>
+        <p id="overlay-subtitle"></p>
+        <div class="stats" id="overlay-stats"></div>
+        <button id="btn-restart" type="button">Chơi lại Đêm 1</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/render/main.js"></script>
+  </body>
+</html>
